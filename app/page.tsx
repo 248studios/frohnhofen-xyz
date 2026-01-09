@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface ColorPalette {
   colors: string[]
@@ -26,23 +26,42 @@ const colorPalettes: ColorPalette[] = [
 ]
 
 export default function Home() {
-  const [currentColor, setCurrentColor] = useState<ColorPalette>(colorPalettes[Math.floor(Math.random() * colorPalettes.length)])
-
   const [canvasWidth, setCanvasWidth] = useState<number>(320)
   const [canvasHeight, setCanvasHeight] = useState<number>(451)
 
   const [rows, setRows] = useState<number>(8)
   const [columns, setColumns] = useState<number>(6)
-  
+
   const [paddingX, setPaddingX] = useState<number>(45)
   const [paddingY, setPaddingY] = useState<number>(65)
 
   const [circleScale, setCircleScale] = useState<number>(0.3132 / columns)
 
+  const [currentColor, setCurrentColor] = useState<ColorPalette>(colorPalettes[0]);
+  const [fills, setFills] = useState<string[]>([]);
+  const count = rows * columns;
+
+  const [mounted, setMounted] = useState<boolean>(false);
+
+  const regenerate = () => {
+    const palette = colorPalettes[Math.floor(Math.random() * colorPalettes.length)];
+    setCurrentColor(palette);
+
+    const next = Array.from({ length: count }, () => {
+      return palette.colors[Math.floor(Math.random() * palette.colors.length)];
+    });
+    setFills(next);
+  };
+
+  useEffect(() => {
+    regenerate();
+    setMounted(true);
+  }, []);
+
   return (
-    <div className="flex h-[95vh] flex-col gap-8 md:gap-8 items-center justify-center roboto text-sm font-medium" style={{ backgroundColor: "#f8f6f1" }}>
+    <div className="flex h-[95vh] flex-col gap-8 md:gap-8 items-center justify-center roboto text-sm font-medium select-none" style={{ backgroundColor: "#f8f6f1" }}>
       <p style={{ width: "320px" }}>Hello! I'm Marius.<br />Developer & Founder based in Germany.</p>
-      <div className="shadow-2xl">
+      <div className="shadow-2xl cursor-pointer" onClick={() => {regenerate()}}>
         <svg
           width={canvasWidth}
           height={canvasHeight}
@@ -58,19 +77,19 @@ export default function Home() {
             fill="#F1EAD8"
           />
           {Array.from({ length: rows }).flatMap((_, row) =>
-            Array.from({ length: columns }).map((_, col) => (
-              <circle
-                key={`${row}-${col}`}
-                cx={col * ((canvasWidth - (2 * paddingX)) / (columns - 1)) + paddingX}
-                cy={row * ((canvasHeight - (2 * paddingY)) / (rows - 1)) + paddingY}
-                r={canvasWidth * circleScale}
-                fill={
-                  currentColor.colors[
-                  Math.floor(Math.random() * currentColor.colors.length)
-                  ]
-                }
-              />
-            ))
+            Array.from({ length: columns }).map((_, col) => {
+              const i = row * columns + col;
+              return (
+                <circle
+                  key={`${row}-${col}`}
+                  cx={col * ((canvasWidth - (2 * paddingX)) / (columns - 1)) + paddingX}
+                  cy={row * ((canvasHeight - (2 * paddingY)) / (rows - 1)) + paddingY}
+                  r={canvasWidth * circleScale}
+                  fill={fills[i] ?? currentColor.colors[0]}
+                  style={{opacity: mounted ? 1 : 0, transition: "opacity 500ms"}}
+                />
+              )
+            })
           )}
         </svg>
       </div>
