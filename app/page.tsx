@@ -86,7 +86,7 @@ export default function Home() {
                   cy={row * ((canvasHeight - (2 * paddingY)) / (rows - 1)) + paddingY}
                   r={canvasWidth * circleScale}
                   fill={fills[i] ?? currentColor.colors[0]}
-                  style={{opacity: mounted ? 1 : 0, transition: "opacity 500ms"}}
+                  style={{opacity: mounted ? 1 : 0, transition: "opacity 500ms, fill 500ms"}}
                 />
               )
             })
